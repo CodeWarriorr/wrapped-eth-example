@@ -106,7 +106,7 @@ describe("WrappedEth", function () {
       const doubleAmount = amount.mul(2);
 
       await expect(WrappedEth.sell(doubleAmount)).to.be.revertedWith(
-        "WrappedEth: balance is insufficient"
+        "WrappedEth: insufficient token balance"
       );
     });
 

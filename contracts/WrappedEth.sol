@@ -25,21 +25,33 @@ contract WrappedEth is ERC20, ERC20Burnable, Pausable, Ownable {
     {}
 
     /**
-      require value > 0
-      mint exact amount 
-    */
+     * @dev Buy tokens with eth equivalent 
+     */
     function buy() public payable whenNotPaused returns (bool) {
-      return true;
+        require(msg.value > 0, "WrappedEth: value is zero");
+
+        _mint(msg.sender, msg.value);
+
+        return true;
     }
 
     /**
-      require amount > 0
-      require amount > balance
-      burn
-      send eth
-    */
+     * @dev Sell tokens for eth equivalent 
+     */
     function sell(uint256 _amount) public whenNotPaused returns (bool) {
-      return true;
+        require(_amount > 0, "WrappedEth: amount is zero");
+        require(
+            _amount <= balanceOf(msg.sender),
+            "WrappedEth: insufficient token balance"
+        );
+
+        _burn(msg.sender, _amount);
+        require(
+            payable(msg.sender).send(_amount),
+            "WrappedEth: insufficient eth balance"
+        );
+
+        return true;
     }
 
     /**
