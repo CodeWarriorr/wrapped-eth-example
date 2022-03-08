@@ -6,19 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-/**
-Pierwsze zadanie będzie nastepujące. 
-
-Napisz kontrakt tokena ERC20 (możesz do tego celu wykorzystać zasoby Openzeppelin)
-a) kontrakt powinien pozwolić zdefiniować symbol tokena, nazwę tokena tokena w konstruktorze. 
-b) kontrakt powinien posiadać funkcję do kupowania tokena. Kontrakt mintuje tokeny w zamian za zdeponowane ETH w ilości 1:1
-c) adekwatnie powinien posiadać funkcję, która pozwala wypłacić userowi ETH w zamian za zburnowanie adekwatnej ilości naszego tokena 
-d) kontrakt powinien posiadać funkcje administracyjne dostępne dla adresu walleta, który zdeployował kontrakt:
-
-pause/unpause możliwości zakupu/sprzedaży tokena z podpunktów b, c;
-pause/unpause możliwości transferu tokenów
- */
-
 contract WrappedEth is ERC20, ERC20Burnable, Pausable, Ownable {
     constructor(string memory _name, string memory _symbol)
         ERC20(_name, _symbol)
@@ -68,5 +55,29 @@ contract WrappedEth is ERC20, ERC20Burnable, Pausable, Ownable {
     function unpause() public onlyOwner returns (bool) {
         _unpause();
         return true;
+    }
+
+    /**
+     * @dev ERC20 transfer with whenNotPaused modifier
+     */
+    function transfer(address to, uint256 amount)
+        public
+        virtual
+        override
+        whenNotPaused
+        returns (bool)
+    {
+        return super.transfer(to, amount);
+    }
+
+    /**
+     * @dev ERC20 transferFrom with whenNotPaused modifier
+     */
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) public virtual override whenNotPaused returns (bool) {
+        return super.transferFrom(from, to, amount);
     }
 }

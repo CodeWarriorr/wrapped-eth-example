@@ -154,4 +154,86 @@ describe("WrappedEth", function () {
       });
     });
   });
+
+  describe("token transfers", () => {
+    let randomWallet: SignerWithAddress;
+    const value = ethers.utils.parseEther("10");
+
+    beforeEach(async () => {
+      [, randomWallet] = await ethers.getSigners();
+      await WrappedEth.buy({ value });
+    });
+
+    describe("transfer", () => {
+      it("transfers some tokens to random address", async () => {
+        await WrappedEth.transfer(randomWallet.address, value);
+
+        expect(await WrappedEth.balanceOf(randomWallet.address)).to.eq(value);
+      });
+
+      describe("when contract is paused", async () => {
+        beforeEach(async () => {
+          await WrappedEth.pause();
+        });
+
+        it("rejects transfer", async () => {
+          await expect(
+            WrappedEth.transfer(randomWallet.address, value)
+          ).to.be.revertedWith("Pausable: paused");
+        });
+      });
+    });
+
+    describe("transferFrom", () => {
+      beforeEach(async () => {
+        await WrappedEth.approve(randomWallet.address, value);
+      });
+
+      it("transfers some tokens to random address", async () => {
+        await WrappedEth.connect(randomWallet).transferFrom(
+          signer.address,
+          randomWallet.address,
+          value
+        );
+
+        expect(await WrappedEth.balanceOf(randomWallet.address)).to.eq(value);
+      });
+
+      describe("when contract is paused", () => {
+        beforeEach(async () => {
+          await WrappedEth.pause();
+        });
+
+        it("rejects transfer", async () => {
+          await expect(
+            WrappedEth.connect(randomWallet).transferFrom(
+              signer.address,
+              randomWallet.address,
+              value
+            )
+          ).to.be.revertedWith("Pausable: paused");
+        });
+      });
+    });
+  });
+
+  describe("pause and unpause", () => {
+    let randomWallet: SignerWithAddress;
+
+    beforeEach(async () => {
+      [, randomWallet] = await ethers.getSigners();
+    });
+
+    it("rejects when pause call is made not by contract owner", async () => {
+      await expect(WrappedEth.connect(randomWallet).pause()).to.be.revertedWith(
+        "Ownable: caller is not the owner"
+      );
+    });
+
+    it("rejects when unpause call is made not by contract owner", async () => {
+      await expect(
+        WrappedEth.connect(randomWallet).unpause()
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+  });
 });
